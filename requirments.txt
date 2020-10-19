@@ -1,0 +1,5 @@
+Flask
+SQLAlchemy
+pg8000
+docker
+
