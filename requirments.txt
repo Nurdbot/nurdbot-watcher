@@ -1,5 +1,5 @@
 Flask
-SQLAlchemy
-pg8000
+SQLAlchemy==1.3.19
+pg8000==1.16.5
 docker
 
