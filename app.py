@@ -6,7 +6,7 @@ from models import *
 
 app = Flask(__name__)
 
-debug = True
+debug = False 
 
 client = docker.from_env()
 if debug == True:
@@ -19,32 +19,9 @@ app.config.from_pyfile('config.py')
 def validate_channel_name(channel):
     pass
 
-    #!TODO
-    #Really maybe just do a try/except
-def init_watcher():
-    for creator in creators:
-        print(creator.id)
-        print('<o_o> Watching... ')
-        print(creator.twitch_channel)
-        exists =[]
-        all_containers = client.containers.list(all=True)
-        for a_container in all_containers:
-            exists.append(a_container.name)
-            
-        if creator.twitch_channel not in exists:
-            container = client.containers.run(
-                'nurdbot',
-                name = creator.twitch_channel,
-                labels = [creator.twitch_channel],
-                detach = True,
-                environment = [f'creator_id={creator.id}', f'twitch_username={creator.twitch_channel}']
-            )
-        else:
-            print('found container, i guess')
-            container = client.containers.get(creator.twitch_channel)
-            container.restart()
+    
+#@app.before_first_request
 
-init_watcher()
 
 @app.route('/', methods=['GET'])
 def index():
@@ -125,5 +102,33 @@ def remove_route():
         return jsonify({"message":"yayayaya"})
     return jsonify({"message":"nahanahnahnah"})
 
+
+
+def init_watcher():
+    for creator in creators:
+        if creator.twitch_channel !='pronerd_jay':
+            print(creator.id)
+            print('<o_o> Watching... ')
+            print(creator.twitch_channel)
+            exists =[]
+            all_containers = client.containers.list(all=True)
+            for a_container in all_containers:
+                exists.append(a_container.name)
+                
+            if creator.twitch_channel not in exists:
+                container = client.containers.run(
+                    'nurdbot',
+                    name = creator.twitch_channel,
+                    labels = [creator.twitch_channel],
+                    detach = True,
+                    environment = [f'creator_id={creator.id}', f'twitch_username={creator.twitch_channel}']
+                )
+            else:
+                print('found container, i guess')
+                container = client.containers.get(creator.twitch_channel)
+                container.restart()
+    return print('all set.')
+
 if __name__ == "__main__":
+    init_watcher()
     app.run(debug=True,host='0.0.0.0',port=int(os.environ.get('PORT', 8080)))
