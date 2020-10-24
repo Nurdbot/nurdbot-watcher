@@ -6,21 +6,17 @@ from models import *
 
 app = Flask(__name__)
 
-debug = False 
-
+debug = True
+#!TODO
+#https://codeshare.io/24DDpA
 client = docker.from_env()
 if debug == True:
     creators = session.query(Creator).filter_by(twitch_channel = 'pronerd_jay').all()
 else:
-    creators = session.query(Creator).all()
+    creators = session.query(Creator).filter_by(twitch_channel !='pronerd_jay').all()
 
 app.config.from_pyfile('config.py')
 
-def validate_channel_name(channel):
-    pass
-
-    
-#@app.before_first_request
 
 
 @app.route('/', methods=['GET'])
@@ -33,10 +29,13 @@ def reboot_route():
     api_key = headers.get('X-Api-Key')
     channel = headers.get('X-Channel-Name')
     if api_key in valid_keys:
-       container = client.containers.get(channel)
-       container.restart()
-       return jsonify({"message":"yayayaya"})
-    return jsonify({"message":"nahanahnahnah"})
+        try:
+            container = client.containers.get(channel)
+            container.restart()
+            return jsonify(message='nailed it'),200
+        except:
+            return jsonify(message=f'no conatiner found for {channel}'), 404
+    return jsonify({"message":"whomstve do you think you are? bad api key."}), 403
 
 @app.route('/status', methods=['GET'])
 def status_route():
@@ -44,9 +43,12 @@ def status_route():
     api_key = headers.get('X-Api-Key')
     channel = headers.get('X-Channel-Name')
     if api_key in valid_keys:
-        container = client.containers.get(channel)
-        return jsonify({"status":container.status})
-    return jsonify({"message":"Nahanahnahnah"})
+        try:
+            container = client.containers.get(channel)
+            return jsonify(status=container.status),200
+        except:
+            return jsonify(message=f'no conatiner found for {channel}'), 404
+    return jsonify(message="whomstve do you think you are? bad api key."),403
 
 @app.route('/kill', methods=['POST'])
 def kill_route():
@@ -54,11 +56,16 @@ def kill_route():
     api_key = headers.get('X-Api-Key')
     channel = headers.get('X-Channel-Name')
     if api_key in valid_keys:
-        container = client.containers.get(channel)
-        if container.status != 'exited':
-            container.kill()
-        return jsonify({"message":"yayayaya"})
-    return jsonify({"message":"nahanahnahnah"})
+        try:
+            container = client.containers.get(channel)
+            if container.status != 'exited':
+                container.kill()
+                return jsonify(message='success'),200
+            else:
+                return jsonify(message="container is likely already in the exited status"), 400
+        except:
+            return jsonify(message=f'no conatiner found for {channel}'), 404
+    return jsonify(message="whomstve do you think you are? bad api key."),403
 
 @app.route('/spawn', methods=['POST'])
 def spawn_route():
@@ -80,14 +87,12 @@ def spawn_route():
                 detach = True,
                 environment = [f'creator_id={creator_id}', f'twitch_username={channel}']
             )
+            return jsonify(message='container spawned successfully. Happy birthday nurdbot.'), 200
         else:
-            print('found container, i guess')
             container = client.containers.get(channel)
             container.restart()
-
-        return jsonify({"message":"yayayaya"})
-   
-    return jsonify({"message":"nahanahnahnah"})
+            return jsonify(message='container exists, rebooting it.'), 200
+    return jsonify(message="whomstve do you think you are? bad api key."),403
 
 @app.route('/remove', methods=['POST'])
 def remove_route():
@@ -99,9 +104,8 @@ def remove_route():
         if container.status != 'exited':
             container.kill()
         container.remove()
-        return jsonify({"message":"yayayaya"})
-    return jsonify({"message":"nahanahnahnah"})
-
+        return jsonify(message="he's dead jim."), 200
+    return jsonify(message="whomstve do you think you are? bad api key."),403
 
 
 def init_watcher():
