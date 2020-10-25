@@ -8,8 +8,6 @@ from models import *
 app = Flask(__name__)
 
 debug = True
-#!TODO
-#https://codeshare.io/24DDpA
 client = docker.from_env()
 if debug == True:
     creators = session.query(Creator).filter_by(twitch_channel = 'pronerd_jay').all()
@@ -17,7 +15,6 @@ else:
     creators = session.query(Creator).filter_by(twitch_channel !='pronerd_jay').all()
 
 app.config.from_pyfile('config.py')
-
 
 
 @app.route('/', methods=['GET'])
@@ -79,7 +76,7 @@ def spawn_route():
         all_containers = client.containers.list(all=True)
         for a_container in all_containers:
             exists.append(a_container.name)
-            
+
         if channel not in exists:
             container = client.containers.run(
                 'nurdbot',
@@ -119,7 +116,7 @@ def init_watcher():
             all_containers = client.containers.list(all=True)
             for a_container in all_containers:
                 exists.append(a_container.name)
-                
+
             if creator.twitch_channel not in exists:
                 container = client.containers.run(
                     'nurdbot',
