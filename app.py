@@ -25,7 +25,7 @@ def index():
 def reboot_route():
     headers = request.headers
     api_key = headers.get('X-Api-Key')
-    channel = headers.get('X-Channel-Name')
+    channel = request.json['channel_name']
     if api_key in valid_keys:
         try:
             container = client.containers.get(channel)
@@ -33,13 +33,13 @@ def reboot_route():
             return jsonify(message='nailed it'),200
         except:
             return jsonify(message=f'no conatiner found for {channel}'), 404
-    return jsonify({"message":"whomstve do you think you are? bad api key."}), 403
+    return jsonify(message=f'whomstve do you think you are> bad api key'), 403
 
-@app.route('/status', methods=['GET'])
+@app.route('/status', methods=['POST'])
 def status_route():
     headers = request.headers
     api_key = headers.get('X-Api-Key')
-    channel = headers.get('X-Channel-Name')
+    channel = request.json['channel_name']
     if api_key in valid_keys:
         try:
             container = client.containers.get(channel)
@@ -52,7 +52,7 @@ def status_route():
 def kill_route():
     headers = request.headers
     api_key = headers.get('X-Api-Key')
-    channel = headers.get('X-Channel-Name')
+    channel = request.json['channel_name']
     if api_key in valid_keys:
         try:
             container = client.containers.get(channel)
@@ -69,8 +69,8 @@ def kill_route():
 def spawn_route():
     headers = request.headers
     api_key = headers.get('X-Api-Key')
-    channel = headers.get('X-Channel-Name')
-    creator_id = headers.get('X-Creator-Id')
+    channel = request.json['channel_name']
+    creator_id = request.json['creator_id']
     if api_key in valid_keys:
         exists =[]
         all_containers = client.containers.list(all=True)
@@ -96,7 +96,7 @@ def spawn_route():
 def remove_route():
     headers = request.headers
     api_key = headers.get('X-Api-Key')
-    channel = headers.get('X-Channel-Name')
+    channel = request.json['channel_name']
     if api_key in valid_keys:
         container = client.containers.get(channel)
         if container.status != 'exited':
@@ -104,7 +104,6 @@ def remove_route():
         container.remove()
         return jsonify(message="he's dead jim."), 200
     return jsonify(message="whomstve do you think you are? bad api key."),403
-
 
 def init_watcher():
     for creator in creators:
