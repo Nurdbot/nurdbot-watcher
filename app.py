@@ -12,7 +12,7 @@ client = docker.from_env()
 if debug == True:
     creators = session.query(Creator).filter_by(twitch_channel = 'pronerd_jay').all()
 else:
-    creators = session.query(Creator).filter_by(twitch_channel !='pronerd_jay').all()
+    creators = session.query(Creator).all()
 
 app.config.from_pyfile('config.py')
 
